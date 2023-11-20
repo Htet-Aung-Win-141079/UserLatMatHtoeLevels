@@ -3,21 +3,25 @@ const express=require("express");
 const ejs=require("ejs");
 const bodyParser=require("body-parser");
 const mongoose=require("mongoose");
+const encrypt=require("mongoose-encryption");
 require("dotenv").config();
 const app=express();
-
-mongoose.set("strictQuery",false);
-mongoose.connect(process.env.MONGO_URL);
-
-const userSchema={
-    em:String,
-    pwd:String
-}
-const User=new mongoose.model("User",userSchema);
 
 app.use(bodyParser.urlencoded({extended:true}));
 app.set("view engine","ejs");
 app.use(express.static("public"));
+
+mongoose.set("strictQuery",false);
+mongoose.connect(process.env.MONGO_URL);
+
+const userSchema=new mongoose.Schema({
+    em:String,
+    pwd:String
+})
+//SECRET string instead of two keys and Encrypt only certain fields,encrypt when call save and decrypt when call find
+userSchema.plugin(encrypt, { secret: process.env.SECRET , encryptedFields: ['pwd'] });
+
+const User=new mongoose.model("User",userSchema);
 
 app.get("/",function(req,res){
     res.render("home");
