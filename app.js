@@ -3,7 +3,8 @@ const express=require("express");
 const ejs=require("ejs");
 const bodyParser=require("body-parser");
 const mongoose=require("mongoose");
-const encrypt=require("mongoose-encryption");
+//const encrypt=require("mongoose-encryption");
+const md5=require("md5");
 require("dotenv").config();
 const app=express();
 
@@ -19,7 +20,7 @@ const userSchema=new mongoose.Schema({
     pwd:String
 })
 //SECRET string instead of two keys and Encrypt only certain fields,encrypt when call save and decrypt when call find
-userSchema.plugin(encrypt, { secret: process.env.SECRET , encryptedFields: ['pwd'] });
+//userSchema.plugin(encrypt, { secret: process.env.SECRET , encryptedFields: ['pwd'] });
 
 const User=new mongoose.model("User",userSchema);
 
@@ -35,7 +36,7 @@ app.get("/login",function(req,res){
 app.post("/register",function(req,res){
     const newUser=new User({
         em:req.body.username,
-        pwd:req.body.password
+        pwd:md5(req.body.password)
     });
     newUser.save(function(err){
         if(err){
@@ -47,7 +48,7 @@ app.post("/register",function(req,res){
 });
 app.post("/login",function(req,res){
     const username=req.body.username;
-    const password=req.body.password;
+    const password=md5(req.body.password);
 
     User.findOne({em:username},function(err,foundUser){
         if(foundUser){
